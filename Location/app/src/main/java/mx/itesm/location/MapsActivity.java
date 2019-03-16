@@ -1,7 +1,13 @@
 package mx.itesm.location;
 
+import android.Manifest;
+import android.content.Context;
+import android.location.Location;
+import android.location.LocationManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -9,6 +15,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.security.Security;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -38,9 +46,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+
+        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        String locationProvider = LocationManager.GPS_PROVIDER;
+        String[] p = {Manifest.permission.ACCESS_FINE_LOCATION};
+        try {
+            ActivityCompat.requestPermissions(this, p, 1);
+            Location lastLocation = locationManager.getLastKnownLocation(locationProvider);
+            // Add a marker in Sydney and move the camera
+            LatLng ll = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+            mMap.addMarker(new MarkerOptions().position(ll).title("Marker"));
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(ll));
+            Toast.makeText(this, "showing your location", Toast.LENGTH_LONG).show();
+        }catch(SecurityException e){
+            Toast.makeText(this, "run again with permissions enabled or add api key", Toast.LENGTH_LONG).show();
+        }
     }
 }
